@@ -6,12 +6,5 @@
     android:layout_height="match_parent"
     tools:context=".JoysticActivity">
 
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="I made it!!!!"
-        android:textSize="22sp"
-        tools:layout_editor_absoluteX="162dp"
-        tools:layout_editor_absoluteY="252dp" />
+
 </android.support.constraint.ConstraintLayout>
