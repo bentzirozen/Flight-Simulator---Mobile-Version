@@ -1,19 +1,25 @@
 package com.example.bentz.simulator_mobile;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.RectF;
+import android.graphics.drawable.BitmapDrawable;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 
 public class Circle extends View {
-
-    Paint paint, paintSmall;
+    Paint oval,movingCircle ;
     private Point start = null;
     private Point cursorAtMouseDown = null;
     private Point startAtMouseDown = null;
@@ -22,44 +28,59 @@ public class Circle extends View {
     private boolean movingEnd = false;
     private boolean movingLine = false;
     private RectF rect;
+    private Canvas canvas;
+    private Display display;
+    private static int counter;
 
     public Circle(Context context) {
         super(context);
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        display = wm.getDefaultDisplay();
         init();
     }
 
     public Circle(Context context, AttributeSet attrs) {
         super(context, attrs);
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        display = wm.getDefaultDisplay();
         init();
     }
 
     public Circle(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        display = wm.getDefaultDisplay();
         init();
     }
 
     private void init() {
-        paint = new Paint();
-        start = new Point(100, 100);
+        counter=0;
+        int width = display.getWidth();
+        int height = display.getHeight();
+        start = new Point(width/12,height/15);
+        oval = new Paint();
+        movingCircle = new Paint();
+        oval.setColor(Color.BLUE);
+        oval.setStrokeWidth(10);
+        oval.setStyle(Paint.Style.STROKE);
+        movingCircle.setColor(Color.RED);
+        movingCircle.setStrokeWidth(10);
+        movingCircle.setStyle(Paint.Style.STROKE);
 
-        paint.setColor(Color.BLUE);
-        paint.setStrokeWidth(10);
-        paint.setStyle(Paint.Style.STROKE);
 
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        float left = canvas.getWidth()/10;
-        float top = canvas.getHeight()/15;
         super.onDraw(canvas);
-        paint.setStyle(Paint.Style.STROKE);
-        rect = new RectF(left,top,left+(canvas.getWidth()/1.25f),top+(canvas.getHeight()/1.25f));
-        canvas.drawOval(rect, paint);
-        canvas.drawCircle(canvas.getWidth()/2, canvas.getHeight()/2, 15, paint);
+       oval.setStyle(Paint.Style.STROKE);
+       rect = new RectF(canvas.getWidth()/10, canvas.getHeight()/15, (canvas.getWidth() / 1.25f), (canvas.getHeight() / 1.25f));
+       canvas.drawOval(rect, oval);
+        canvas.drawCircle(start.x*6, start.y*7.5f, 15, movingCircle);
 
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
