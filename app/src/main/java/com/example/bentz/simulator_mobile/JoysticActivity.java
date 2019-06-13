@@ -15,10 +15,11 @@ public class JoysticActivity extends AppCompatActivity {
         setContentView(R.layout.main);
         Intent intent = getIntent();
         String ip = intent.getStringExtra("ip_text");
-        int port = Integer.parseInt(intent.getStringExtra("port_text"));
+        String port = intent.getStringExtra("port_text");
+        int port1 = Integer.parseInt(intent.getStringExtra("port_text"));
         try {
             this.tcp = new Connection();
-            this.tcp.connect(ip, port);
+            this.tcp.execute(ip, port);
         }catch(Exception e) {
             System.out.println(e.toString());
         }
