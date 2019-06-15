@@ -1,6 +1,7 @@
 package com.example.bentz.simulator_mobile;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -30,5 +31,12 @@ public class MainActivity extends AppCompatActivity {
                         startActivity(intent);
                     }
                 });
+    }
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        Intent intent = getIntent();
+        finish();
+        startActivity(intent);
     }
 }

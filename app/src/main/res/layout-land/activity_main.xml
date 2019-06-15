@@ -10,66 +10,67 @@
         android:id="@+id/PortText"
         android:layout_width="76dp"
         android:layout_height="39dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="1dp"
-        android:layout_marginTop="56dp"
+        android:layout_marginBottom="60dp"
+        android:layout_marginEnd="64dp"
         android:text="@string/port"
-        android:textAlignment="viewStart"
+        android:textAlignment="center"
         android:textSize="20sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toStartOf="@+id/port_text"
-        app:layout_constraintHorizontal_bias="0.935"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/IpText" />
+        app:layout_constraintBottom_toTopOf="@+id/connect_button"
+        app:layout_constraintEnd_toStartOf="@+id/port_text" />
 
     <TextView
         android:id="@+id/IpText"
         android:layout_width="76dp"
         android:layout_height="39dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="60dp"
+        android:layout_marginEnd="64dp"
+        android:layout_marginTop="56dp"
         android:text="@string/ip"
         android:textAlignment="center"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toStartOf="@+id/ip_text"
-        app:layout_constraintHorizontal_bias="0.888"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+
+    </TextView>
+
 
     <EditText
         android:id="@+id/ip_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="47dp"
         android:layout_marginEnd="52dp"
-        android:layout_marginTop="60dp"
         android:ems="10"
         android:importantForAutofill="no"
         android:inputType="textPersonName"
         android:textAlignment="center"
+        app:layout_constraintBottom_toTopOf="@+id/port_text"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:targetApi="o" />
+        tools:targetApi="o"
+        tools:visibility="visible" />
 
     <EditText
         android:id="@+id/port_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="57dp"
         android:layout_marginEnd="52dp"
-        android:layout_marginTop="152dp"
         android:ems="10"
         android:importantForAutofill="no"
-        android:inputType="textPersonName|number"
+        android:inputType="number"
         android:textAlignment="center"
+        app:layout_constraintBottom_toTopOf="@+id/connect_button"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:targetApi="o" />
+        tools:ignore="MissingConstraints"
+        tools:targetApi="o"
+        tools:visibility="visible" />
 
     <Button
         android:id="@+id/connect_button"
-        android:layout_width="189dp"
-        android:layout_height="78dp"
+        android:layout_width="150dp"
+        android:layout_height="60dp"
         android:layout_marginBottom="28dp"
         android:layout_marginEnd="16dp"
         android:layout_marginStart="16dp"

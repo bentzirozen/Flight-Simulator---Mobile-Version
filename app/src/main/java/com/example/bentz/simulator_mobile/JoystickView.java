@@ -1,11 +1,6 @@
 package com.example.bentz.simulator_mobile;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -13,16 +8,11 @@ import android.graphics.Point;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.support.v4.view.MotionEventCompat;
-import android.util.AttributeSet;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowManager;
+
 
 public class JoystickView extends View {
-    Paint oval,movingCircle ;
     private float x;
     private float y;
     private float radius;
@@ -31,14 +21,14 @@ public class JoystickView extends View {
     private float startHei;
     private float endHei;
     private RectF ovalRect;
+    private float ovalWidth;
+    private float ovalHeight;
+    private Point center;
     private Boolean playMoving = false;
     private Connection tcp;
-    private Bitmap playerImage;
 
     public JoystickView(Context context,Connection tcp) {
         super(context);
-        Resources res = getResources();
-        playerImage = BitmapFactory.decodeResource(res, R.drawable.check);
         this.radius = 100;
         this.tcp = tcp;
     }
@@ -51,7 +41,6 @@ public class JoystickView extends View {
         Paint cursorPaint = new Paint();
         cursorPaint.setColor(Color.rgb(0, 0, 0));
         cursorPaint.setStrokeWidth(10);
-
         Paint ovalPaint = new Paint();
         ovalPaint.setColor(Color.rgb(0, 0, 100));
         ovalPaint.setStrokeWidth(10);
@@ -68,13 +57,16 @@ public class JoystickView extends View {
         this.startHei = (float)getHeight()/8;
         this.endHei = getHeight()-((float)getHeight()/8);
         this.ovalRect = new RectF(this.startWid,this.startHei , this.endWid, this.endHei);
+        this.ovalWidth = (ovalRect.right - ovalRect.left)/2;
+        this.ovalHeight = (ovalRect.top - ovalRect.bottom)/2;
+        this.center = new Point(getWidth()/2,getHeight()/2);
     }
 
     public void returnDefualt() {
         this.x = (float)getWidth()/2;
         this.y = (float)getHeight()/2;
-        tcp.sendCommands("set /controls/flight/aileron " + String.valueOf(normelizeAilron(this.x)) + "\r\n");
-        tcp.sendCommands("set /controls/flight/elevator "+ String.valueOf(normelizeElevator(this.y)) + "\r\n");
+        tcp.sendCommands("set /controls/flight/aileron " + String.valueOf(0) + "\r\n");
+        tcp.sendCommands("set /controls/flight/elevator "+ String.valueOf(0) + "\r\n");
     }
 
 
@@ -113,20 +105,33 @@ public class JoystickView extends View {
     }
 
     Boolean CheckForLimit(float xVal, float yVal) {
-        return (this.ovalRect.contains(xVal,yVal)&&
-                this.ovalRect.contains(xVal, yVal+radius) &&
-                this.ovalRect.contains(xVal, yVal-radius) &&
-                this.ovalRect.contains(xVal+radius, yVal) &&
-                this.ovalRect.contains(xVal-radius, yVal));
+        float dx = xVal -center.x ;
+        float dy = yVal - center.y;
+        return   (dx * dx) / (ovalWidth * ovalWidth) + (dy * dy) / (ovalHeight * ovalHeight)<=0.57;
+
     }
 
 
     public float normelizeAilron(float x) {
-        return (x-((this.startWid+this.endWid)/2))/((this.endWid-this.startWid)/2);
+        float ret =1.47f* (x-((this.startWid+this.endWid)/2))/((this.endWid-this.startWid)/2);
+        if(ret>=1){
+            return 1;
+        }else if(ret<=-1){
+            return -1;
+        }else{
+            return ret;
+        }
     }
 
     public float normelizeElevator(float y) {
-        return (y-((this.startHei+this.endHei)/2))/((this.startHei-this.endHei)/2);
+        float ret = 1.42f*(y-((this.startHei+this.endHei)/2))/((this.startHei-this.endHei)/2);
+        if(ret>=1){
+            return 1;
+        }else if(ret<=-1){
+            return -1;
+        }else{
+            return ret;
+        }
     }
 
 
