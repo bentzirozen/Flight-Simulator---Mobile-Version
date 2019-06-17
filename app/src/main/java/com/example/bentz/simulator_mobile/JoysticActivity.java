@@ -7,7 +7,7 @@ import android.os.Bundle;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class JoysticActivity extends AppCompatActivity {
+public class JoysticActivity extends AppCompatActivity implements JoystickView.JoystickListener {
     private Connection tcp;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,11 +23,18 @@ public class JoysticActivity extends AppCompatActivity {
         }catch(Exception e) {
             System.out.println(e.toString());
         }
-        JoystickView joyStrickView = new JoystickView(this,tcp);
+        JoystickView joyStrickView = new JoystickView(this);
         setContentView(joyStrickView);
     }
     public void onDestroy() {
         this.tcp.close();
         super.onDestroy();
+    }
+    //set the aileron and the elevator when the joystick is moved.
+    @Override
+    public void onJoystickMoved(float x, float y) {
+        tcp.sendCommands("set /controls/flight/aileron " + String.valueOf(x) + "\r\n");
+        tcp.sendCommands("set /controls/flight/elevator "+ String.valueOf(y) + "\r\n");
+
     }
 }

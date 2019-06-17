@@ -1,138 +1,134 @@
 package com.example.bentz.simulator_mobile;
-
 import android.content.Context;
+
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Point;
 import android.graphics.RectF;
-import android.graphics.drawable.BitmapDrawable;
-import android.support.v4.view.MotionEventCompat;
+import android.util.AttributeSet;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 
-
-public class JoystickView extends View {
+public class JoystickView extends SurfaceView implements SurfaceHolder.Callback, View.OnTouchListener
+{
     private float x;
     private float y;
-    private float radius;
+    private float ovalRadius;
+    private float cursorRadius;
+    private JoystickListener joystickCallback;
     private float startWid;
     private float endWid;
-    private float startHei;
     private float endHei;
+    private float startHei;
     private RectF ovalRect;
-    private float ovalWidth;
-    private float ovalHeight;
-    private Point center;
-    private Boolean playMoving = false;
-    private Connection tcp;
-
-    public JoystickView(Context context,Connection tcp) {
-        super(context);
-        this.radius = 100;
-        this.tcp = tcp;
-    }
 
 
-    protected void onDraw(Canvas canvas) {
-
-        super.onDraw(canvas);
-        //canvas.drawBitmap(playerImage,null,ovalRect,null);
-        Paint cursorPaint = new Paint();
-        cursorPaint.setColor(Color.rgb(0, 0, 0));
-        cursorPaint.setStrokeWidth(10);
-        Paint ovalPaint = new Paint();
-        ovalPaint.setColor(Color.rgb(0, 0, 100));
-        ovalPaint.setStrokeWidth(10);
-        canvas.drawOval(this.ovalRect, ovalPaint);
-        canvas.drawCircle(this.x, this.y, this.radius, cursorPaint);
-
-    }
-
-    public void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
-        returnDefualt();
-        this.startWid = (float)getWidth()/8;
-        this.endWid = (float)getWidth()-((float)getWidth()/8);
-        this.startHei = (float)getHeight()/8;
-        this.endHei = getHeight()-((float)getHeight()/8);
+    private void setupDimensions()
+    {
+        x = getWidth() / 2;
+        y = getHeight() / 2;
+        this.startWid = (float)getWidth()/12;
+        this.endWid = (float)getWidth()-((float)getWidth()/12);
+        this.startHei = (float)getHeight()/5;
+        this.endHei = getHeight()-((float)getHeight()/5);
         this.ovalRect = new RectF(this.startWid,this.startHei , this.endWid, this.endHei);
-        this.ovalWidth = (ovalRect.right - ovalRect.left)/2;
-        this.ovalHeight = (ovalRect.top - ovalRect.bottom)/2;
-        this.center = new Point(getWidth()/2,getHeight()/2);
+        ovalRadius = Math.min(getWidth(), getHeight()) / 3;
+        cursorRadius = Math.min(getWidth(), getHeight()) / 10;
     }
 
-    public void returnDefualt() {
-        this.x = (float)getWidth()/2;
-        this.y = (float)getHeight()/2;
-        tcp.sendCommands("set /controls/flight/aileron " + String.valueOf(0) + "\r\n");
-        tcp.sendCommands("set /controls/flight/elevator "+ String.valueOf(0) + "\r\n");
+    public JoystickView(Context context)
+    {
+        super(context);
+        getHolder().addCallback(this);
+        setOnTouchListener(this);
+        if(context instanceof JoystickListener)
+            joystickCallback = (JoystickListener) context;
     }
 
+    public JoystickView(Context context, AttributeSet attributes, int style)
+    {
+        super(context, attributes, style);
+        getHolder().addCallback(this);
+        setOnTouchListener(this);
+        if(context instanceof JoystickListener)
+            joystickCallback = (JoystickListener) context;
+    }
 
-    public boolean onTouchEvent(MotionEvent event) {
-        int action = MotionEventCompat.getActionMasked(event);
-        switch (action) {
-            case MotionEvent.ACTION_DOWN: {
-                if(CheckIfInside(event.getX(), event.getY())) {
-                    this.playMoving = true;
+    public JoystickView (Context context, AttributeSet attributes)
+    {
+        super(context, attributes);
+        getHolder().addCallback(this);
+        setOnTouchListener(this);
+        if(context instanceof JoystickListener)
+            joystickCallback = (JoystickListener) context;
+    }
+
+    private void drawJoystick(float newX, float newY)
+    {
+        if(getHolder().getSurface().isValid())
+        {
+            Canvas myCanvas = this.getHolder().lockCanvas();
+            Paint paint = new Paint();
+            myCanvas.drawColor(0xffffffff);
+            //Draw the base first before shading
+            paint.setARGB(255, 83, 40, 223);
+            myCanvas.drawOval(ovalRect,paint);
+            paint.setARGB(255,239,37, 37);
+            myCanvas.drawCircle(newX, newY, cursorRadius, paint);
+            getHolder().unlockCanvasAndPost(myCanvas);
+        }
+    }
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder)
+    {
+        setupDimensions();
+        drawJoystick(x, y);
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+
+    }
+
+    public boolean onTouch(View v, MotionEvent e)
+    {
+        if(v.equals(this))
+        {
+            if(e.getAction() != e.ACTION_UP)
+            {
+                float dist = (float) Math.sqrt((Math.pow(e.getX() - x, 2)) + Math.pow(e.getY() - y, 2));
+                if(dist < ovalRadius)
+                {
+                    drawJoystick(e.getX(), e.getY());
+                    joystickCallback.onJoystickMoved((e.getX() - x)/ovalRadius, (e.getY() - y)/ovalRadius);
                 }
-                break;
-            }
-            case MotionEvent.ACTION_MOVE: {
-                if (!this.playMoving)
-                    return true;
-                if (CheckForLimit(event.getX(), event.getY())) {
-                    this.x = event.getX();
-                    this.y = event.getY();
-                    tcp.sendCommands("set /controls/flight/aileron "+ String.valueOf(normelizeAilron(this.x)) + "\r\n");
-                    tcp.sendCommands("set /controls/flight/elevator "+ String.valueOf(normelizeElevator(this.y)) + "\r\n");
-                    invalidate();
+                else
+                {
+                    float ratio = ovalRadius / dist;
+                    float constrainedX = x + (e.getX() - x) * ratio;
+                    float constrainedY = y + (e.getY() - y) * ratio;
+                    drawJoystick(constrainedX, constrainedY);
+                    joystickCallback.onJoystickMoved((constrainedX-x)/ovalRadius, (constrainedY-y)/ovalRadius);
                 }
-                break;
             }
-            case MotionEvent.ACTION_UP :
-                this.playMoving = false;
-                returnDefualt();
-                invalidate();
+            else
+                drawJoystick(x, y);
+
+            if(e.getAction() == e.ACTION_UP)
+                joystickCallback.onJoystickMoved(0,0);
         }
         return true;
     }
 
-    Boolean CheckIfInside(float xVal, float yVal) {
-        double distance = Math.sqrt((this.x-xVal)*(this.x-xVal) + (this.y-yVal)*(this.y-yVal));
-        return (distance <= this.radius);
+    public interface JoystickListener
+    {
+        void onJoystickMoved(float x, float y);
     }
-
-    Boolean CheckForLimit(float xVal, float yVal) {
-        float dx = xVal -center.x ;
-        float dy = yVal - center.y;
-        return   (dx * dx) / (ovalWidth * ovalWidth) + (dy * dy) / (ovalHeight * ovalHeight)<=0.57;
-
-    }
-
-
-    public float normelizeAilron(float x) {
-        float ret =1.47f* (x-((this.startWid+this.endWid)/2))/((this.endWid-this.startWid)/2);
-        if(ret>=1){
-            return 1;
-        }else if(ret<=-1){
-            return -1;
-        }else{
-            return ret;
-        }
-    }
-
-    public float normelizeElevator(float y) {
-        float ret = 1.42f*(y-((this.startHei+this.endHei)/2))/((this.startHei-this.endHei)/2);
-        if(ret>=1){
-            return 1;
-        }else if(ret<=-1){
-            return -1;
-        }else{
-            return ret;
-        }
-    }
-
-
 }
